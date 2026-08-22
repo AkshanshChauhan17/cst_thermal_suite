@@ -49,7 +49,7 @@ export async function addCalculator(formData: FormData) {
   const validated = CalculatorSchema.safeParse(rawData)
 
   if (!validated.success) {
-    return { success: false, error: validated.error.errors[0].message }
+    return { success: false, error: validated.error.message }
   }
 
   const { name, description, slug, price } = validated.data
@@ -68,10 +68,15 @@ export async function addCalculator(formData: FormData) {
 
     return { success: true, message: 'Calculator registered successfully!' }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error adding calculator:', error)
     // Check if it's a unique constraint violation (slug already exists)
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === 'ER_DUP_ENTRY'
+    ) {
       return { success: false, error: 'A calculator with this slug already exists.' }
     }
     return { success: false, error: 'System error while saving calculator.' }

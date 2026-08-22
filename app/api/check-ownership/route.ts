@@ -1,6 +1,9 @@
 // app/api/check-ownership/route.ts
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import type { RowDataPacket } from 'mysql2'
+
+type OwnershipRow = RowDataPacket & { id: number }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -13,7 +16,7 @@ export async function GET(request: Request) {
 
   try {
     // Join the user_calculators and calculators tables to check if the user owns this specific slug
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<OwnershipRow[]>(
       `SELECT uc.id 
        FROM user_calculators uc
        JOIN calculators c ON uc.calculator_id = c.id

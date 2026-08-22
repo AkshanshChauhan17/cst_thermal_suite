@@ -33,7 +33,7 @@ export async function addColleague(formData: FormData) {
   }
 
   const validated = LinkColleagueSchema.safeParse(rawData)
-  if (!validated.success) return { success: false, error: validated.error.errors[0].message }
+  if (!validated.success) return { success: false, error: validated.error.message }
   
   const { email } = validated.data
 
