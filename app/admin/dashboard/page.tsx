@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // app/admin/dashboard/page.tsx
 import { db } from '@/lib/db'
 import type { RowDataPacket } from 'mysql2'

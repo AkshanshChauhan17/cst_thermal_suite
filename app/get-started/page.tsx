@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import GetStartedSection from "@/src/components/get-started/GetStartedSection";
 
 export const metadata = {

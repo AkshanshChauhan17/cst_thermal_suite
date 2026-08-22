@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // app/blogs/page.tsx
 import { db } from '@/lib/db'
 import BlogsClient from './blogsClients'
