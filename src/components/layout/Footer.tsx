@@ -61,8 +61,8 @@ export default function Footer() {
           <div className="flex flex-col">
             <h4 className="font-bold text-[#1E1B4B] mb-6 uppercase tracking-wider text-xs">Legal</h4>
             <ul className="flex flex-col gap-4">
-              <li><Link href="/terms-of-service" className="text-sm text-gray-500 hover:text-[#5648FC] transition-colors">Terms of Service</Link></li>
-              <li><Link href="/privacy-policy" className="text-sm text-gray-500 hover:text-[#5648FC] transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="text-sm text-gray-500 hover:text-[#5648FC] transition-colors">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="text-sm text-gray-500 hover:text-[#5648FC] transition-colors">Privacy Policy</Link></li>
               <li><Link href="/cookies" className="text-sm text-gray-500 hover:text-[#5648FC] transition-colors">Cookie Policy</Link></li>
             </ul>
           </div>

@@ -1,11 +1,15 @@
+// app/contact/page.tsx (ya jahan bhi aapka ContactSection component hai)
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle2 } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { submitContact } from "@/app/actions/contactActions";
 
 export default function ContactSection() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const fadeUpVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
@@ -16,17 +20,27 @@ export default function ContactSection() {
     },
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setErrorMsg("");
+
+    const formData = new FormData(e.currentTarget);
+    const res = await submitContact(formData);
+
+    if (res.success) {
+      setSubmitted(true);
+    } else {
+      setErrorMsg(res.error || "Something went wrong.");
+    }
+    setLoading(false);
   };
 
   return (
     <section className="w-full min-h-screen flex flex-col lg:flex-row bg-white">
       
-      {/* Left Side - Contact Info & Enterprise Support (Dark Mode) */}
+      {/* Left Side - Contact Info */}
       <div className="w-full lg:w-5/12 bg-[#1E1B4B] p-8 md:p-16 lg:p-20 flex flex-col justify-between relative overflow-hidden">
-        {/* Abstract Background Element */}
         <div className="absolute top-0 right-0 w-full h-full overflow-hidden pointer-events-none z-0">
           <div className="absolute -bottom-[20%] -right-[10%] w-[70%] h-[70%] bg-[#5648FC] rounded-full blur-[120px] opacity-20"></div>
           <div className="absolute top-[10%] -left-[20%] w-[60%] h-[60%] bg-[#86EFAC] rounded-full blur-[120px] opacity-10"></div>
@@ -128,24 +142,32 @@ export default function ContactSection() {
                 <p className="text-gray-500 text-sm">Fill out the form below and our technical team will get back to you.</p>
               </div>
 
+              {errorMsg && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 text-xs font-bold rounded">
+                  {errorMsg}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#1E1B4B] uppercase tracking-wider">Full Name</label>
                     <input 
                       type="text" 
+                      name="full_name"
                       required 
                       placeholder="Rahul Sharma" 
-                      className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] focus:ring-1 focus:ring-[#5648FC] transition-colors"
+                      className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] transition-colors"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#1E1B4B] uppercase tracking-wider">Work Email</label>
                     <input 
                       type="email" 
+                      name="email"
                       required 
                       placeholder="rahul@company.in" 
-                      className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] focus:ring-1 focus:ring-[#5648FC] transition-colors"
+                      className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] transition-colors"
                     />
                   </div>
                 </div>
@@ -153,7 +175,8 @@ export default function ContactSection() {
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-[#1E1B4B] uppercase tracking-wider">Subject / Department</label>
                   <select 
-                    className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] focus:ring-1 focus:ring-[#5648FC] transition-colors text-gray-700"
+                    name="department"
+                    className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] transition-colors text-gray-700"
                   >
                     <option>Technical Calculator Support</option>
                     <option>Coil Selection Software Query</option>
@@ -165,19 +188,21 @@ export default function ContactSection() {
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-[#1E1B4B] uppercase tracking-wider">Message</label>
                   <textarea 
+                    name="message"
                     rows={4} 
                     required 
                     placeholder="Describe your thermodynamic calculations or inquiry in detail..." 
-                    className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] focus:ring-1 focus:ring-[#5648FC] transition-colors resize-none"
+                    className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] transition-colors resize-none"
                   ></textarea>
                 </div>
 
                 <button 
                   type="submit" 
+                  disabled={loading}
                   className="mt-2 w-full bg-[#5648FC] text-white px-8 py-4 font-bold text-base hover:bg-[#4336d6] transition-colors flex items-center justify-center gap-2 group"
                 >
-                  Send Message
-                  <Send size={18} className="group-hover:translate-x-1 transition-transform" />
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : "Send Message"}
+                  {!loading && <Send size={18} className="group-hover:translate-x-1 transition-transform" />}
                 </button>
               </form>
             </>

@@ -1,9 +1,24 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Check, BarChart3, Zap, Layers } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check } from "lucide-react";
+import Image from "next/image";
+
+// Define your 3 images here
+const IMAGES = ["/hero.png", "/h1.png", "/h2.png", "/h3.png"];
 
 export default function HeroSection() {
+    const SLICES = 5;
+    const [currentIndex, setCurrentIndex] = useState(0);
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentIndex((prevIndex) => (prevIndex + 1) % IMAGES.length);
+        }, 5000);
+        
+        return () => clearInterval(timer);
+    }, []);
+
     return (
         <section className="w-full bg-[#F7F8FA] pt-24 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
             <div className="max-w-7xl mx-auto">
@@ -50,16 +65,62 @@ export default function HeroSection() {
                     </motion.div>
                 </div>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.4 }}
-                    className="w-full max-w-[1440px] mx-auto bg-gray-200 border border-gray-300 flex items-center justify-center h-[50vh] md:h-[70vh] shadow-xl"
-                >
-                    <span className="text-gray-400 font-semibold text-xl tracking-widest uppercase">
-                        Image Placeholder
-                    </span>
-                </motion.div>
+                <div className="relative w-full max-w-[1440px] mx-auto h-[50vh] md:h-[70vh] flex items-center justify-center mt-8">
+                    <div className="absolute inset-0 w-full h-full shadow-xl overflow-hidden border border-gray-300 bg-[#E5E7EB]">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentIndex}
+                                className="absolute inset-0 w-full h-full"
+                            >
+                                {Array.from({ length: SLICES }).map((_, i) => {
+                                    const sliceWidth = 100 / SLICES;
+                                    const left = i * sliceWidth;
+                                    const right = 100 - (i + 1) * sliceWidth;
+
+                                    return (
+                                        <motion.div
+                                            key={`${currentIndex}-${i}`}
+                                            className="absolute inset-0 w-full h-full"
+                                            style={{
+                                                clipPath: `inset(0% ${right}% 0% ${left}%)`,
+                                            }}
+                                            initial={{ opacity: 0, y: i % 2 === 0 ? 80 : -80 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 1.1 }}
+                                            transition={{
+                                                duration: 0.8,
+                                                delay: i * 0.1,
+                                                ease: [0.33, 1, 0.68, 1],
+                                            }}
+                                        >
+                                            <motion.div
+                                                className="w-full h-full relative"
+                                                animate={{ scale: [1, 1.05, 1] }}
+                                                transition={{
+                                                    duration: 6 + i * 0.5,
+                                                    repeat: Infinity,
+                                                    repeatType: "mirror",
+                                                    ease: "easeInOut",
+                                                }}
+                                            >
+                                                <Image
+                                                    src={IMAGES[currentIndex]}
+                                                    alt={`Thermal Engineering Tool Visualization ${currentIndex + 1}`}
+                                                    fill
+                                                    priority={currentIndex === 0} // Only prioritize the first image to load fast
+                                                    sizes="(max-width: 768px) 100vw, 1440px"
+                                                    quality={80}
+                                                    className="object-cover"
+                                                />
+                                            </motion.div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </motion.div>
+                        </AnimatePresence>
+                        
+                    </div>
+                </div>
             </div>
         </section>
     );
