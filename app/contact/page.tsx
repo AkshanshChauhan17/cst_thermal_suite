@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import ContactSection from "@/src/components/contact/ContactSection";
 
 export const metadata = {
