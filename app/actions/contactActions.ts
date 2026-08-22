@@ -35,7 +35,7 @@ export async function submitContact(formData: FormData) {
 
     revalidatePath('/admin/contacts')
     return { success: true, message: 'Message received successfully!' }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return { success: false, error: 'Failed to send message.' }
   }
 }

@@ -4,6 +4,30 @@ import CTASection from "@/src/components/layout/CTASection"
 import { Clock, ArrowLeft, Share2, Bookmark, User, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { notFound } from 'next/navigation'
+import type { RowDataPacket } from 'mysql2'
+
+interface BlogRow extends RowDataPacket {
+  id: number
+  title: string
+  slug: string
+  category: string | null
+  content: string
+  created_at: string | Date
+  author_name: string | null
+  author_role: string | null
+  cover_image: string | null
+  image_caption: string | null
+  tags: string | null
+}
+
+interface RelatedBlogRow extends RowDataPacket {
+  id: number
+  title: string
+  slug: string
+  category: string | null
+  content: string
+  created_at: string | Date
+}
 
 export const revalidate = 60 // 1 minute cache
 
@@ -13,7 +37,7 @@ export default async function BlogDetail({ params }: { params: Promise<{ slug: s
   const slug = resolvedParams.slug;
 
   // 1. Fetch exact blog from DB using the slug
-  const [rows]: any = await db.query(
+  const [rows] = await db.query<BlogRow[]>(
     'SELECT * FROM blogs WHERE slug = ? AND is_published = 1 LIMIT 1',
     [slug]
   )
@@ -25,7 +49,7 @@ export default async function BlogDetail({ params }: { params: Promise<{ slug: s
   const blog = rows[0]
 
   // 2. Fetch 2 other published blogs for the "Further Reading" section
-  const [relatedRows]: any = await db.query(
+  const [relatedRows] = await db.query<RelatedBlogRow[]>(
     'SELECT id, title, slug, category, content, created_at FROM blogs WHERE slug != ? AND is_published = 1 ORDER BY created_at DESC LIMIT 2',
     [slug]
   )
@@ -155,7 +179,7 @@ export default async function BlogDetail({ params }: { params: Promise<{ slug: s
             <p className="text-gray-500">No other articles available right now.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {relatedRows.map((item: any) => {
+              {relatedRows.map((item) => {
                 const plainExcerpt = item.content.replace(/<!--BLOCKS_JSON=[\s\S]*?-->/g, '').replace(/<[^>]+>/g, '').substring(0, 120) + '...';
                 return (
                   <div key={item.id} className="bg-white border border-gray-200 p-8 flex flex-col justify-between shadow-sm hover:border-[#5648FC] transition-all rounded-none group">

@@ -6,6 +6,11 @@ import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
 import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
+import type { RowDataPacket } from 'mysql2/promise'
+
+interface UserRow extends RowDataPacket {
+  token_balance: number
+}
 
 const secretKey = process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_make_sure_to_change_this_later'
 const key = new TextEncoder().encode(secretKey)
@@ -35,7 +40,7 @@ export async function runThermalCalculation(jobName: string, tokenCost: number =
     await connection.beginTransaction()
 
     // 3. Lock the User Row (`FOR UPDATE`) and get the current balance
-    const [userRows]: any = await connection.query(
+    const [userRows] = await connection.query<UserRow[]>(
       'SELECT token_balance FROM users WHERE id = ? FOR UPDATE',
       [userId]
     )

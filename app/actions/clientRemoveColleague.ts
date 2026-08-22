@@ -5,6 +5,12 @@ import { db } from '@/lib/db'
 import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
 import { revalidatePath } from 'next/cache'
+import type { RowDataPacket } from 'mysql2'
+
+interface TargetUserRow extends RowDataPacket {
+  name: string
+  manager_id: string | null
+}
 
 const secretKey = process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_make_sure_to_change_this_later'
 const key = new TextEncoder().encode(secretKey)
@@ -29,7 +35,7 @@ export async function clientRemoveColleague(targetUserId: string) {
     await connection.beginTransaction()
 
     // 1. Verify Target User and their Manager
-    const [userRows]: any = await connection.query(
+    const [userRows] = await connection.query<TargetUserRow[]>(
       'SELECT name, manager_id FROM users WHERE id = ? FOR UPDATE', 
       [targetUserId]
     )

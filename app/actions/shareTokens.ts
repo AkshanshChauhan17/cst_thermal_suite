@@ -7,10 +7,18 @@ import { jwtVerify } from 'jose'
 import crypto from 'crypto'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
+import type { RowDataPacket } from 'mysql2/promise'
 
 // BUG FIXED: Key yahan match karni chahiye login wali key se!
 const secretKey = process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_make_sure_to_change_this_later'
 const key = new TextEncoder().encode(secretKey)
+
+interface UserRow extends RowDataPacket {
+  id: string
+  email: string
+  name: string
+  token_balance: number
+}
 
 const TransferSchema = z.object({
   recipientId: z.string().min(1, "Please select a recipient"),
@@ -47,7 +55,7 @@ export async function shareTokens(formData: FormData) {
     await connection.beginTransaction()
 
     // 1. Get Sender Info
-    const [senderRows]: any = await connection.query(
+    const [senderRows] = await connection.query<UserRow[]>(
       'SELECT email, token_balance FROM users WHERE id = ? FOR UPDATE',
       [senderId]
     )
@@ -61,7 +69,7 @@ export async function shareTokens(formData: FormData) {
     }
 
     // 3. Get Recipient Info
-    const [recipientRows]: any = await connection.query(
+    const [recipientRows] = await connection.query<UserRow[]>(
       'SELECT id, email, name FROM users WHERE id = ? FOR UPDATE',
       [recipientId]
     )

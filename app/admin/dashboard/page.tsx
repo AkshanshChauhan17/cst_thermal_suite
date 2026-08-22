@@ -1,10 +1,11 @@
 // app/admin/dashboard/page.tsx
 import { db } from '@/lib/db'
+import type { RowDataPacket } from 'mysql2'
 import AddCalculatorForm from './AddCalculatorForm'
 import AdminSidebar from '../components/AdminSidebar'
 import { Server, Activity, Power, Shield } from 'lucide-react'
 
-type Calculator = {
+type Calculator = RowDataPacket & {
   id: string
   name: string
   slug: string
@@ -14,7 +15,7 @@ type Calculator = {
 }
 
 export default async function AdminDashboardPage() {
-  const [rows]: any = await db.query(
+  const [rows] = await db.query<Calculator[]>(
     'SELECT * FROM calculators ORDER BY created_at DESC'
   )
   const calculators = rows as Calculator[]

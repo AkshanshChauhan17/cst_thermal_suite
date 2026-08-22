@@ -6,6 +6,7 @@ import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
+import type { RowDataPacket } from 'mysql2'
 
 const secretKey = process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_make_sure_to_change_this_later'
 const key = new TextEncoder().encode(secretKey)
@@ -14,6 +15,13 @@ const key = new TextEncoder().encode(secretKey)
 const LinkColleagueSchema = z.object({
   email: z.string().email('Invalid email format'),
 })
+
+interface ExistingUser extends RowDataPacket {
+  id: number
+  name: string
+  manager_id: number | null
+  role: string
+}
 
 export async function addColleague(formData: FormData) {
   const cookieStore = await cookies()
@@ -39,7 +47,7 @@ export async function addColleague(formData: FormData) {
 
   try {
     // 1. Check karo ki email database mein hai ya nahi
-    const [existingUsers]: any = await db.query(
+    const [existingUsers] = await db.query<ExistingUser[]>(
       'SELECT id, name, manager_id, role FROM users WHERE email = ?', 
       [email]
     )

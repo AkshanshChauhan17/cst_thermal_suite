@@ -6,6 +6,21 @@ import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
 import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
+import type { RowDataPacket } from 'mysql2'
+
+interface UserRow extends RowDataPacket {
+  token_balance: number
+}
+
+interface CalculatorRow extends RowDataPacket {
+  name: string
+  price: number
+  is_active: boolean
+}
+
+interface OwnershipRow extends RowDataPacket {
+  id: string
+}
 
 const secretKey = process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_make_sure_to_change_this_later'
 const key = new TextEncoder().encode(secretKey)
@@ -17,9 +32,10 @@ export async function purchaseCalculator(calculatorId: string) {
 
   if (!token) return { success: false, error: 'Unauthorized.' }
 
-  let userId;
+  let userId: string
   try {
     const { payload } = await jwtVerify(token, key, { algorithms: ['HS256'] })
+    if (typeof payload.id !== 'string') return { success: false, error: 'Invalid session.' }
     userId = payload.id
   } catch {
     return { success: false, error: 'Invalid session.' }
@@ -32,7 +48,7 @@ export async function purchaseCalculator(calculatorId: string) {
     await connection.beginTransaction()
 
     // 3. Lock user row to get absolute current balance
-    const [userRows]: any = await connection.query(
+    const [userRows] = await connection.query<UserRow[]>(
       'SELECT token_balance FROM users WHERE id = ? FOR UPDATE',
       [userId]
     )
@@ -40,7 +56,7 @@ export async function purchaseCalculator(calculatorId: string) {
     const currentBalance = userRows[0].token_balance
 
     // 4. Get Calculator Price and Details
-    const [calcRows]: any = await connection.query(
+    const [calcRows] = await connection.query<CalculatorRow[]>(
       'SELECT name, price, is_active FROM calculators WHERE id = ?',
       [calculatorId]
     )
@@ -53,7 +69,7 @@ export async function purchaseCalculator(calculatorId: string) {
     }
 
     // 5. Check if user already owns it
-    const [ownershipRows]: any = await connection.query(
+    const [ownershipRows] = await connection.query<OwnershipRow[]>(
       'SELECT id FROM user_calculators WHERE user_id = ? AND calculator_id = ?',
       [userId, calculatorId]
     )
@@ -96,7 +112,7 @@ export async function purchaseCalculator(calculatorId: string) {
 
     return { success: true, message: `${calculator.name} unlocked successfully!` }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     await connection.rollback()
     connection.release()
     console.error('Purchase Error:', error)

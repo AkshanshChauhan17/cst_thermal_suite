@@ -6,6 +6,15 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { SignJWT } from 'jose'
 import { cookies } from 'next/headers'
+import type { RowDataPacket } from 'mysql2'
+
+interface UserRow extends RowDataPacket {
+  id: number
+  name: string
+  email: string
+  password: string
+  role: string
+}
 
 // Secret key for JWT signing. Must be at least 32 chars.
 // In production, put this in .env.local: JWT_SECRET="your_long_random_string"
@@ -31,7 +40,7 @@ export async function loginUser(formData: {
 
   try {
     // 1. Find user by email
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<UserRow[]>(
       'SELECT id, name, email, password, role FROM users WHERE email = ?',
       [email]
     )

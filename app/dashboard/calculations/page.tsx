@@ -28,10 +28,10 @@ export default async function CalculationsPage() {
     // In a real app, you would query the database here:
     // const [jobs]: any = await db.query('SELECT * FROM calculation_jobs WHERE user_id = ?', [payload.id])
     
-    return <CalculationsClient jobs={mockJobs} />
-    
   } catch (error) {
     console.error('Calculations Auth Error:', error)
     redirect('/login')
   }
+
+  return <CalculationsClient jobs={mockJobs} />
 }

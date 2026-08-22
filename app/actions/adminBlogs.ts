@@ -84,8 +84,8 @@ export async function addBlog(formData: FormData) {
     revalidatePath('/admin/blogs')
     revalidatePath('/blogs')
     return { success: true, message: 'Blog published successfully!' }
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to save blog' }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to save blog' }
   }
 }
 
@@ -115,8 +115,8 @@ export async function updateBlog(id: string, formData: FormData) {
     revalidatePath('/blogs')
     revalidatePath(`/blogs/${data.slug}`)
     return { success: true, message: 'Blog updated successfully!' }
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to update blog' }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update blog' }
   }
 }
 

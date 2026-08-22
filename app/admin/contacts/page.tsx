@@ -4,6 +4,9 @@ import { jwtVerify } from 'jose'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import AdminContactsClient from './AdminContactsClient'
+import type { ComponentProps } from 'react'
+
+type Contact = ComponentProps<typeof AdminContactsClient>['initialContacts'][number]
 
 const secretKey = process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_make_sure_to_change_this_later'
 const key = new TextEncoder().encode(secretKey)
@@ -20,7 +23,7 @@ export default async function AdminContactsPage() {
     redirect('/admin/login')
   }
 
-  const [contacts]: any = await db.query('SELECT * FROM contacts ORDER BY created_at DESC')
+  const [contacts] = (await db.query('SELECT * FROM contacts ORDER BY created_at DESC')) as unknown as [Contact[]]
 
   return <AdminContactsClient initialContacts={contacts} />
 }

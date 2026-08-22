@@ -8,13 +8,24 @@ import { FileText, Loader2, Plus, Edit2, X, Clock, ArrowLeft, User, Check, Headi
 
 type BlockType = 'intro' | 'h2' | 'p' | 'quote' | 'list_item'
 type Block = { id: string; type: BlockType; content: string; subContent?: string }
+type Blog = {
+  id: string
+  title: string
+  slug: string
+  category?: string | null
+  cover_image?: string | null
+  image_caption?: string | null
+  tags?: string | null
+  content: string
+  is_published: boolean
+}
 
-export default function AdminBlogsClient({ initialBlogs }: { initialBlogs: any[] }) {
+export default function AdminBlogsClient({ initialBlogs }: { initialBlogs: Blog[] }) {
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   
   // Extract initial unique categories dynamically from existing blogs
-  const initialCats = Array.from(new Set(initialBlogs.map((b: any) => b.category).filter(Boolean)))
+  const initialCats = Array.from(new Set(initialBlogs.map((b: Blog) => b.category).filter((cat): cat is string => Boolean(cat))))
   if (initialCats.length === 0) {
     initialCats.push('Platform Releases', 'Thermodynamics', 'SaaS Architecture', 'HVAC Design', 'Engineering Reports')
   }
@@ -109,7 +120,7 @@ export default function AdminBlogsClient({ initialBlogs }: { initialBlogs: any[]
     if (coverImageFile) formData.append('cover_image_file', coverImageFile)
     formData.append('existing_cover_image', coverImage)
 
-    let res = editingId ? await updateBlog(editingId, formData) : await addBlog(formData)
+    const res = editingId ? await updateBlog(editingId, formData) : await addBlog(formData)
     
     if (res.success) {
       setFeedback({ type: 'success', text: res.message || 'Saved successfully' })
@@ -122,7 +133,7 @@ export default function AdminBlogsClient({ initialBlogs }: { initialBlogs: any[]
     setTimeout(() => setFeedback(null), 4000)
   }
 
-  function handleEdit(blog: any) {
+  function handleEdit(blog: Blog) {
     setEditingId(blog.id)
     setTitle(blog.title); setSlug(blog.slug); setCategory(blog.category || categoriesList[0]);
     setCoverImage(blog.cover_image || '/coil_img1.webp'); setCoverImageFile(null);
@@ -220,7 +231,7 @@ export default function AdminBlogsClient({ initialBlogs }: { initialBlogs: any[]
                         onChange={e => setCategory(e.target.value)} 
                         className="w-full border p-2 rounded text-sm bg-white outline-none focus:border-[#5648FC]"
                       >
-                        {categoriesList.map((cat: any, i: number) => (
+                        {categoriesList.map((cat: string, i: number) => (
                           <option key={i} value={cat}>{cat}</option>
                         ))}
                       </select>
@@ -323,7 +334,7 @@ export default function AdminBlogsClient({ initialBlogs }: { initialBlogs: any[]
                     <span className="text-xs font-bold truncate max-w-[150px]">{b.title}</span>
                     <div className="flex gap-1">
                       <button onClick={() => handleEdit(b)} className="p-1 text-[#5648FC] bg-indigo-50 rounded"><Edit2 size={12}/></button>
-                      <button onClick={() => toggleBlogStatus(b.id, b.is_published)} className="p-1 text-amber-600 bg-amber-50 rounded">{b.is_published ? <Eye size={12}/> : <EyeOff size={12}/>}</button>
+                      <button onClick={() => toggleBlogStatus(b.id, b.is_published ? 0 : 1)} className="p-1 text-amber-600 bg-amber-50 rounded">{b.is_published ? <Eye size={12}/> : <EyeOff size={12}/>}</button>
                       <button onClick={() => deleteBlog(b.id)} className="p-1 text-red-600 bg-red-50 rounded"><Trash2 size={12}/></button>
                     </div>
                   </div>
@@ -398,7 +409,7 @@ export default function AdminBlogsClient({ initialBlogs }: { initialBlogs: any[]
                     if (b.type === 'p') return <p key={i}>{b.content || '...'}</p>
                     if (b.type === 'quote') return (
                       <div key={i} className="bg-[#F7F8FA] border-l-4 border-[#5648FC] p-8 my-6">
-                        <p className="text-xl font-bold text-[#1E1B4B] italic mb-3">"{b.content || '...'}"</p>
+                        <p className="text-xl font-bold text-[#1E1B4B] italic mb-3">&ldquo;{b.content || '...'}&rdquo;</p>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">— {b.subContent || '...'}</span>
                       </div>
                     )

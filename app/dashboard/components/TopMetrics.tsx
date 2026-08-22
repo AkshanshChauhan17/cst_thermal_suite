@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import { Activity, Zap, History, AlertCircle } from 'lucide-react'
 
 type UserData = {
@@ -10,7 +10,7 @@ type UserData = {
   token_balance: number
 }
 
-export default function TopMetrics({ user, variants }: { user: UserData, variants: any }) {
+export default function TopMetrics({ user, variants }: { user: UserData, variants: Variants }) {
   return (
     <>
       <motion.div variants={variants} className="flex justify-between items-end">

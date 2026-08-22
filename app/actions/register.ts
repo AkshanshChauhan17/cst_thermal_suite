@@ -26,12 +26,12 @@ export async function registerUser(formData: {
 
   try {
     // 1. Check if user exists using parameterized query
-    const [existing]: any = await db.query(
+    const [existing] = await db.query(
       'SELECT id FROM users WHERE email = ?',
       [email]
     )
 
-    if (existing.length > 0) {
+    if (Array.isArray(existing) && existing.length > 0) {
       return { success: false, error: 'Email is already registered' }
     }
 

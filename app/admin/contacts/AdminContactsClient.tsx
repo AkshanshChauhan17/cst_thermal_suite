@@ -6,8 +6,18 @@ import AdminSidebar from '../components/AdminSidebar'
 import { toggleContactStatus, deleteContact } from '@/app/actions/contactActions'
 import { Mail, Trash2, CheckCircle, Clock, Search, Filter, Inbox } from 'lucide-react'
 
-export default function AdminContactsClient({ initialContacts }: { initialContacts: any[] }) {
-  const [selectedContact, setSelectedContact] = useState<any>(initialContacts.length > 0 ? initialContacts[0] : null)
+type Contact = {
+  id: string
+  full_name: string
+  email: string
+  message: string
+  status: string
+  department: string | null
+  created_at: string
+}
+
+export default function AdminContactsClient({ initialContacts }: { initialContacts: Contact[] }) {
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(initialContacts.length > 0 ? initialContacts[0] : null)
   
   // Advanced Filter & Search States
   const [searchQuery, setSearchQuery] = useState('')
@@ -103,7 +113,7 @@ export default function AdminContactsClient({ initialContacts }: { initialContac
                 className="bg-transparent outline-none cursor-pointer font-medium text-[#1E1B4B] max-w-[150px] truncate"
               >
                 {departments.map((dept, i) => (
-                  <option key={i} value={dept}>{dept}</option>
+                  <option key={i} value={dept ?? ''}>{dept}</option>
                 ))}
               </select>
             </div>
