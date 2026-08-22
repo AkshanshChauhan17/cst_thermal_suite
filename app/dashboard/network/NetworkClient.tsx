@@ -8,16 +8,31 @@ import { addColleague } from '@/app/actions/addColleague'
 import { clientRemoveColleague } from '@/app/actions/clientRemoveColleague'
 import { Share2, Users, Loader2, UserPlus, AlertCircle, CheckCircle2, Unlink } from 'lucide-react'
 
+type NetworkMember = {
+  id: string
+  name: string
+  email: string
+  level: number
+}
+
+type Transfer = {
+  reason: string
+  actor_name: string
+  actor_email: string
+  amount: number
+  created_at: string | Date
+}
+
 export default function NetworkClient({ 
   userEmail, balance, network, transfers 
 }: { 
-  userEmail: string, balance: number, network: any[], transfers: any[] 
+  userEmail: string, balance: number, network: NetworkMember[], transfers: Transfer[] 
 }) {
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   
   // Unlink Modal State
-  const [userToUnlink, setUserToUnlink] = useState<any | null>(null)
+  const [userToUnlink, setUserToUnlink] = useState<NetworkMember | null>(null)
   const [unlinkLoading, setUnlinkLoading] = useState(false)
   
   const addFormRef = useRef<HTMLFormElement>(null)
@@ -74,7 +89,7 @@ export default function NetworkClient({
 
     const res = await clientRemoveColleague(userToUnlink.id)
     if (res.success) {
-      setFeedback({ type: 'success', text: res.message })
+      setFeedback({ type: 'success', text: res.message || 'User removed successfully' })
       setUserToUnlink(null) // Modal close
     } else {
       setFeedback({ type: 'error', text: res.error || 'Failed to remove user' })

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import Link from 'next/link'
 import { purchaseCalculator } from '@/app/actions/purchaseCalculator'
 import { Zap, AlertCircle, Loader2, Lock, Unlock, Play } from 'lucide-react'
@@ -23,7 +23,7 @@ export default function CalculatorStore({
   calculators: Calculator[], 
   ownedIds: string[], 
   userBalance: number,
-  variants: any
+  variants: Variants
 }) {
   const [purchasingId, setPurchasingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)

@@ -4,6 +4,15 @@ import { jwtVerify } from 'jose'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import LedgerClient from './LedgerClient'
+import type { RowDataPacket } from 'mysql2'
+
+interface LedgerRow extends RowDataPacket {
+  id: number
+  amount: number
+  reason: string
+  created_at: Date | string
+}
+
 
 const secretKey = process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_make_sure_to_change_this_later'
 const key = new TextEncoder().encode(secretKey)
@@ -14,19 +23,32 @@ export default async function LedgerPage() {
   
   if (!token) redirect('/login')
 
+  let ledgerRows: LedgerRow[]
+
   try {
     const { payload } = await jwtVerify(token, key, { algorithms: ['HS256'] })
     
     // Fetch ledger history for this specific user, newest first
-    const [ledgerRows]: any = await db.query(
+    const [rows] = await db.query<LedgerRow[]>(
       'SELECT id, amount, reason, created_at FROM token_ledger WHERE user_id = ? ORDER BY created_at DESC',
       [payload.id]
     )
-    
-    return <LedgerClient history={ledgerRows} />
+
+    ledgerRows = rows
     
   } catch (error) {
     console.error('Ledger Auth Error:', error)
     redirect('/login')
   }
+
+  return (
+    <LedgerClient
+      history={ledgerRows.map((row) => ({
+        id: String(row.id),
+        amount: row.amount,
+        reason: row.reason,
+        created_at: new Date(row.created_at),
+      }))}
+    />
+  )
 }
