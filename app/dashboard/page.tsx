@@ -1,8 +1,10 @@
 // app/dashboard/page.tsx
+export const dynamic = 'force-dynamic';
+
 import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
-import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
+import { db } from '@/lib/db'
 import DashboardClient from './DashboardClient'
 
 const secretKey = process.env.JWT_SECRET || 'fallback_secret_key_for_dev_only_make_sure_to_change_this_later'
@@ -15,72 +17,55 @@ type UserRow = {
   token_balance: number
 }
 
-type CalculatorRow = {
-  id: string
-  name: string
-  description: string
-  slug: string
-  price: number
-}
-
-type OwnedCalculatorRow = {
-  calculator_id: string | number
+type UsageStatsRow = {
+  totalSessions: number | null
+  totalMinutes: number | null
+  totalTokensSpent: number | null
 }
 
 export default async function DashboardPage() {
   const cookieStore = await cookies()
   const token = cookieStore.get('session')?.value
-  
+
   if (!token) redirect('/login')
 
-  let user: UserRow | undefined
-  let calculators: CalculatorRow[]
-  let ownedCalculatorIds: string[]
-
+  let userId = ''
   try {
     const { payload } = await jwtVerify(token, key, { algorithms: ['HS256'] })
-    
-    // 1. Fetch User Data
-    const [userRows] = (await db.query(
-      'SELECT id, name, email, token_balance FROM users WHERE id = ?',
-      [payload.id]
-    )) as [UserRow[], unknown]
-    user = userRows[0]
-    
-    if (!user) redirect('/login')
-
-    // Normalize the database identifier for the client component.
-    user = { ...user, id: String(user.id) }
-
-    // 2. Fetch All Active Calculators for the Store
-    const [calcRows] = (await db.query(
-      'SELECT id, name, description, slug, price FROM calculators WHERE is_active = true ORDER BY created_at DESC'
-    )) as [CalculatorRow[], unknown]
-    calculators = calcRows.map((calculator) => ({
-      ...calculator,
-      id: String(calculator.id),
-    }))
-    
-    // 3. Fetch IDs of calculators this specific user already owns
-    const [ownedRows] = (await db.query(
-      'SELECT calculator_id FROM user_calculators WHERE user_id = ?',
-      [user.id]
-    )) as [OwnedCalculatorRow[], unknown]
-    
-    // Convert the database rows into a simple array of strings [ "id-1", "id-2" ]
-    ownedCalculatorIds = ownedRows.map((row) => String(row.calculator_id))
-    
-  } catch (error) {
-    console.error('Dashboard Auth Error:', error)
+    userId = payload.id as string
+  } catch {
     redirect('/login')
   }
 
-  // Pass everything down to the client UI outside the try/catch.
-  return (
-    <DashboardClient 
-      user={user} 
-      calculators={calculators} 
-      ownedIds={ownedCalculatorIds} 
-    />
-  )
+  // 1. Fetch User Data
+  const [userRows] = (await db.query(
+    'SELECT id, name, email, token_balance FROM users WHERE id = ?',
+    [userId],
+  )) as [UserRow[], unknown]
+  if (userRows.length === 0) redirect('/login')
+  const user = userRows[0]
+
+  // 2. Fetch Calculators (Modules)
+  type Calculator = Parameters<typeof DashboardClient>[0]['calculators'][number]
+  const [calculators] = (await db.query(
+    'SELECT * FROM calculators WHERE is_active = 1 ORDER BY created_at DESC',
+  )) as [Calculator[], unknown]
+
+  // 3. NEW: Fetch Usage Analytics for this specific user
+  const [statsRows] = (await db.query(`
+    SELECT 
+      COUNT(session_id) as totalSessions,
+      SUM(minutes_used) as totalMinutes,
+      SUM(tokens_spent) as totalTokensSpent
+    FROM usage_logs 
+    WHERE user_id = ?
+  `, [userId])) as [UsageStatsRow[], unknown]
+  
+  const stats = {
+    totalSessions: statsRows[0]?.totalSessions || 0,
+    totalMinutes: statsRows[0]?.totalMinutes || 0,
+    totalTokensSpent: statsRows[0]?.totalTokensSpent || 0,
+  }
+
+  return <DashboardClient user={user} calculators={calculators} stats={stats} />
 }

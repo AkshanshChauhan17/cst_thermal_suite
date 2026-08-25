@@ -1,14 +1,17 @@
 // app/admin/dashboard/AddCalculatorForm.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { addCalculator } from '@/app/actions/adminCalculators'
-import { Loader2, Plus, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Loader2, Plus, AlertCircle, CheckCircle2, Link2 } from 'lucide-react'
 
 export default function AddCalculatorForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  
+  // 1. Form ka reference banane ke liye useRef ka use kiya
+  const formRef = useRef<HTMLFormElement>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -24,7 +27,10 @@ export default function AddCalculatorForm() {
       setError(res.error || 'Failed to add calculator')
     } else {
       setSuccess(res.message || 'Calculator added successfully')
-      e.currentTarget.reset()
+      
+      // 2. Reference ke through safely form reset karna
+      formRef.current?.reset() 
+      
       setTimeout(() => setSuccess(null), 4000)
     }
   }
@@ -50,7 +56,8 @@ export default function AddCalculatorForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {/* 3. yahan formRef assign kar diya */}
+      <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Display Name</label>
           <input
@@ -75,6 +82,23 @@ export default function AddCalculatorForm() {
             title="Only lowercase letters, numbers, and hyphens"
             className="w-full border border-gray-300 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:border-red-500 transition-colors disabled:opacity-50 font-mono"
           />
+        </div>
+
+        {/* PYTHON API URL */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Python API Endpoint</label>
+          <div className="relative">
+            <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="url"
+              name="api_url"
+              required
+              disabled={loading}
+              placeholder="https://xyz-domain.com/api/run"
+              className="w-full border border-gray-300 pl-9 pr-4 py-2.5 rounded-lg text-sm font-mono text-indigo-600 focus:outline-none focus:border-red-500 transition-colors disabled:opacity-50 bg-gray-50"
+            />
+          </div>
+          <p className="text-[10px] text-gray-400">Secure backend compute URL. Completely hidden from public clients.</p>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -104,7 +128,7 @@ export default function AddCalculatorForm() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-2 w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          className="mt-2 w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
           Deploy Calculator

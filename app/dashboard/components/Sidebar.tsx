@@ -21,9 +21,9 @@ export default function Sidebar() {
   // Navigation Links ka Array
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, activeColor: 'text-[#86EFAC]' },
-    { name: 'Calculations', href: '/dashboard/calculations', icon: Zap, activeColor: 'text-[#5648FC]' },
     { name: 'Network & Team', href: '/dashboard/network', icon: Share2, activeColor: 'text-[#38bdf8]' },
     { name: 'Ledger History', href: '/dashboard/ledger', icon: History, activeColor: 'text-emerald-400' },
+    { name: 'Session History', href: '/dashboard/sessions', icon: Zap, activeColor: 'text-[#5648FC]' },
   ]
 
   return (

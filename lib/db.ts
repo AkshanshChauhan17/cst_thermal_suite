@@ -1,16 +1,36 @@
 import mysql from 'mysql2/promise';
 
-export const db = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'akshansh',
-  database: process.env.DB_NAME || 'thermal_suite',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+// 1. TypeScript ko batane ke liye ki global variable exist karta hai
+declare global {
+  var _mysqlPool: mysql.Pool | undefined;
+}
 
-// 1. Users table
+// 2. Optimized Connection Pool Function
+function createConnectionPool() {
+  return mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'akshansh',
+    database: process.env.DB_NAME || 'thermal_suite',
+    waitForConnections: true,
+    connectionLimit: 15,
+    maxIdle: 10,
+    idleTimeout: 60000,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10000
+  });
+}
+
+// 3. Next.js Hot Reload Fix (Connection Leak Prevention)
+export const db = globalThis._mysqlPool || createConnectionPool();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalThis._mysqlPool = db;
+}
+
+// --- DATABASE SCHEMAS ---
+
 const CREATE_USERS_TABLE = `
   CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(36) PRIMARY KEY,
@@ -25,7 +45,6 @@ const CREATE_USERS_TABLE = `
   );
 `;
 
-// 2. Token ledger table
 const CREATE_LEDGER_TABLE = `
   CREATE TABLE IF NOT EXISTS token_ledger (
     id VARCHAR(36) PRIMARY KEY,
@@ -37,64 +56,64 @@ const CREATE_LEDGER_TABLE = `
   );
 `;
 
-// 3. Calculators table
 const CREATE_CALCULATORS_TABLE = `
   CREATE TABLE IF NOT EXISTS calculators (
     id VARCHAR(36) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     slug VARCHAR(255) UNIQUE NOT NULL,
+    api_url VARCHAR(255) NOT NULL, -- Added missing api_url field
     price INT NOT NULL DEFAULT 0,
     is_active BOOLEAN DEFAULT TRUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `;
 
-// 4. User calculators table
 const CREATE_USER_CALCULATORS_TABLE = `
   CREATE TABLE IF NOT EXISTS user_calculators (
     id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL,
     calculator_id VARCHAR(36) NOT NULL,
     purchased_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (user_id)
-      REFERENCES users(id)
-      ON DELETE CASCADE,
-
-    FOREIGN KEY (calculator_id)
-      REFERENCES calculators(id)
-      ON DELETE CASCADE,
-
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (calculator_id) REFERENCES calculators(id) ON DELETE CASCADE,
     UNIQUE(user_id, calculator_id)
   );
 `;
 
-// 5. Auto-initialization function
+// New table for pre-paid session tracking and analytics
+const CREATE_USAGE_LOGS_TABLE = `
+  CREATE TABLE IF NOT EXISTS usage_logs (
+    session_id VARCHAR(100) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    calculator_id VARCHAR(36) NOT NULL,
+    tokens_spent INT DEFAULT 0,
+    minutes_used INT DEFAULT 0,
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_ping_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  );
+`;
+
+// --- AUTO INITIALIZATION ---
+
 async function initializeDatabase() {
   let connection;
 
   try {
     connection = await db.getConnection();
 
-    // Create users first
     await connection.query(CREATE_USERS_TABLE);
-
-    // Then token ledger
     await connection.query(CREATE_LEDGER_TABLE);
-
-    // Then calculators
     await connection.query(CREATE_CALCULATORS_TABLE);
-
-    // Finally user-calculator relationship
     await connection.query(CREATE_USER_CALCULATORS_TABLE);
+    await connection.query(CREATE_USAGE_LOGS_TABLE); // Added new logs table
 
-    console.log('✅ Database tables initialized successfully.');
+    console.log('Database tables initialized successfully.');
   } catch (error) {
-    console.error('❌ Failed to initialize database tables:', error);
+    console.error('Failed to initialize database tables:', error);
   } finally {
     if (connection) {
-      connection.release();
+      connection.release(); // Pushes the connection back to the pool safely
     }
   }
 }

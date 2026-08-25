@@ -34,12 +34,50 @@ export default function LedgerClient({ history }: { history: LedgerEntry[] }) {
     }).format(new Date(date))
   }
 
+  // EXPORT CSV FUNCTION
+  const handleExportCSV = () => {
+    if (history.length === 0) {
+      alert("No data to export!");
+      return;
+    }
+
+    // 1. Create CSV Headers
+    const headers = ['Transaction ID', 'Reason', 'Date & Time', 'Amount (TKN)'];
+
+    // 2. Map data to CSV rows
+    const rows = history.map(entry => {
+      // Reason ya Date mein agar comma (,) hua toh CSV break ho jayega, isliye usko quotes "" mein wrap kar rahe hain
+      const safeReason = `"${entry.reason.replace(/"/g, '""')}"`;
+      const safeDate = `"${formatDate(entry.created_at)}"`;
+      const amountStr = entry.amount > 0 ? `+${entry.amount}` : `${entry.amount}`;
+      
+      return [entry.id, safeReason, safeDate, amountStr].join(',');
+    });
+
+    // 3. Combine Headers and Rows
+    const csvContent = [headers.join(','), ...rows].join('\n');
+
+    // 4. Create a Blob and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `ThermalSuite_Ledger_${new Date().toISOString().split('T')[0]}.csv`);
+    
+    // Append to body, click, and clean up
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex">
       <Sidebar />
 
       <main className="flex-1 md:ml-64 p-8">
-        <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-5xl mx-auto">
+        <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-6xl mx-auto relative">
           
           {/* Header */}
           <motion.div variants={itemVariants} className="flex justify-between items-end mb-8">
@@ -50,7 +88,12 @@ export default function LedgerClient({ history }: { history: LedgerEntry[] }) {
               </h1>
               <p className="text-gray-500 mt-1">An immutable record of your token transactions.</p>
             </div>
-            <button className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-colors text-sm shadow-sm">
+            
+            {/* ADDED onClick HANDLER HERE */}
+            <button 
+              onClick={handleExportCSV}
+              className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-colors text-sm shadow-sm active:scale-95"
+            >
               <FileText size={16} />
               Export CSV
             </button>

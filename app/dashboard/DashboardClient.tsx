@@ -1,3 +1,4 @@
+// app/dashboard/DashboardClient.tsx
 'use client'
 
 import { motion } from 'framer-motion'
@@ -9,17 +10,17 @@ import Sidebar from './components/Sidebar'
 // Types
 type Calculator = { id: string; name: string; description: string; slug: string; price: number }
 type UserData = { id: string; name: string; email: string; token_balance: number }
+type UserStats = { totalSessions: number; totalMinutes: number; totalTokensSpent: number } // NEW
 
 export default function DashboardClient({ 
   user, 
-  calculators, 
-  ownedIds 
+  calculators,
+  stats // NEW
 }: { 
   user: UserData, 
-  calculators: Calculator[], 
-  ownedIds: string[] 
+  calculators: Calculator[],
+  stats: UserStats // NEW
 }) {
-  // Animation settings
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
@@ -32,24 +33,19 @@ export default function DashboardClient({
 
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex">
-      {/* 1. Moduler Sidebar */}
       <Sidebar />
-      {/* Main Content Workspace */}
       <main className="flex-1 md:ml-64 p-8">
         <motion.div 
           initial="hidden" 
           animate="visible" 
           variants={containerVariants} 
-          className="max-w-5xl mx-auto"
+          className="max-w-6xl mx-auto relative"
         >
-          {/* 2. Moduler Top Metrics */}
-          <TopMetrics user={user} variants={itemVariants} />
+          {/* Pass stats to TopMetrics */}
+          <TopMetrics user={user} stats={stats} variants={itemVariants} />
 
-          {/* 3. Moduler Store */}
           <CalculatorStore 
-            calculators={calculators} 
-            ownedIds={ownedIds} 
-            userBalance={user.token_balance}
+            calculators={calculators}
             variants={itemVariants}
           />
         </motion.div>
