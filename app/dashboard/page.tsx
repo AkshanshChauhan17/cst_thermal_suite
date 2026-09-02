@@ -1,4 +1,3 @@
-// app/dashboard/page.tsx
 export const dynamic = 'force-dynamic';
 
 import { cookies } from 'next/headers'
@@ -37,21 +36,19 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // 1. Fetch User Data
   const [userRows] = (await db.query(
     'SELECT id, name, email, token_balance FROM users WHERE id = ?',
     [userId],
   )) as [UserRow[], unknown]
+  
   if (userRows.length === 0) redirect('/login')
   const user = userRows[0]
 
-  // 2. Fetch Calculators (Modules)
   type Calculator = Parameters<typeof DashboardClient>[0]['calculators'][number]
   const [calculators] = (await db.query(
-    'SELECT * FROM calculators WHERE is_active = 1 ORDER BY created_at DESC',
+    'SELECT * FROM calculators ORDER BY is_active DESC, created_at DESC',
   )) as [Calculator[], unknown]
 
-  // 3. NEW: Fetch Usage Analytics for this specific user
   const [statsRows] = (await db.query(`
     SELECT 
       COUNT(session_id) as totalSessions,

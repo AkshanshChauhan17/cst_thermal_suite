@@ -113,7 +113,7 @@ export default function AddCalculatorForm() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Unlock Price (Tokens)</label>
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Token Rate (per min)</label>
           <input
             type="number"
             name="price"

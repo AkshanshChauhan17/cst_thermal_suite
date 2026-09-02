@@ -22,6 +22,7 @@ export default function AdminSidebar() {
   // Yahan 'Blog Management' add kiya hai
   const adminLinks = [
     { name: 'Command Center', href: '/admin/dashboard', icon: Server, activeColor: 'text-red-400' },
+    { name: 'Python Server', href: '/admin/python', icon: Cpu, activeColor: 'text-red-400' },
     { name: 'User Management', href: '/admin/users', icon: Users, activeColor: 'text-red-400' },
     { name: 'Global Network', href: '/admin/network', icon: Network, activeColor: 'text-red-400' },
     { name: 'Client Inquiries', href: '/admin/contacts', icon: Mail, activeColor: 'text-red-400' },

@@ -15,14 +15,14 @@ const key = new TextEncoder().encode(secretKey)
 async function checkAdminAuth() {
   const cookieStore = await cookies()
   const token = cookieStore.get('session')?.value
-  
+
   if (!token) throw new Error('Unauthorized')
 
   const { payload } = await jwtVerify(token, key, { algorithms: ['HS256'] })
 
   if (payload.role !== 'ADMIN') throw new Error('Root Admin clearance required')
 
-  return payload 
+  return payload
 }
 
 // 2. Validation schema for a new calculator (Added api_url here)
@@ -30,8 +30,8 @@ const CalculatorSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   description: z.string().optional(),
   slug: z.string().regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
-  price: z.coerce.number().min(0, 'Price cannot be negative'), 
-  api_url: z.string().url('Please provide a valid secure API URL'), 
+  price: z.coerce.number().min(0, 'Price cannot be negative'),
+  api_url: z.string().url('Please provide a valid secure API URL'),
 })
 
 export async function addCalculator(formData: FormData) {
@@ -71,7 +71,7 @@ export async function addCalculator(formData: FormData) {
 
   } catch (error: unknown) {
     console.error('Error adding calculator:', error)
-    
+
     if (
       error &&
       typeof error === 'object' &&
@@ -105,6 +105,26 @@ export async function deleteCalculator(id: string) {
     await db.query('DELETE FROM calculators WHERE id = ?', [id])
     revalidatePath('/admin/dashboard')
     return { success: true, message: 'Module deleted' }
+  } catch (error) {
+    return { success: false, error: 'Failed to delete module' }
+  }
+}
+
+export async function updateCalculator(id: string, data: {
+  name: string
+  slug: string
+  description: string
+  price: number
+  api_url: string
+  image_url: string
+}) {
+  try {
+    await checkAdminAuth()
+    await db.query(
+      'UPDATE calculators SET name = ?, slug = ?, description = ?, price = ?, api_url = ?, image_url = ? WHERE id = ?',
+      [data.name, data.slug, data.description, data.price, data.api_url, data.image_url, id]
+    )
+    revalidatePath('/admin/dashboard')
   } catch (error) {
     return { success: false, error: 'Failed to delete module' }
   }

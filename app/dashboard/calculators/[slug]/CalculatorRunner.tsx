@@ -15,14 +15,11 @@ export default function CalculatorRunner({ calculator, initialBalance }: { calcu
   const [showLowTokenPopup, setShowLowTokenPopup] = useState(false)
   const [elapsedMinutes, setElapsedMinutes] = useState(0)
   
-  // NEW STATE: User Consent & Header Collapsing & Iframe Loading
   const [userConsented, setUserConsented] = useState(false)
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false)
   const [isIframeLoading, setIsIframeLoading] = useState(true)
 
-  const [sessionId] = useState<string>(() =>
-    Math.random().toString(36).substring(2, 8).toUpperCase()
-  )
+  const [sessionId, setSessionId] = useState<string>('')
   const hasStarted = useRef(false)
 
   // Heartbeat Timer & Billing Logic
@@ -38,9 +35,7 @@ export default function CalculatorRunner({ calculator, initialBalance }: { calcu
         setBalance(res.newBalance)
         setElapsedMinutes(prev => prev + 1)
 
-        if (res.newBalance < 5) {
-          setShowLowTokenPopup(true)
-        }
+        if (res.newBalance < 5) setShowLowTokenPopup(true)
         
         if (res.newBalance < calculator.price) {
           setIsRunning(false)
@@ -66,7 +61,7 @@ export default function CalculatorRunner({ calculator, initialBalance }: { calcu
   return (
     <div className="flex flex-col h-screen w-full relative overflow-hidden bg-[#F7F8FA]">
       
-      {/* 1. TOP INFORMATION BAR (Slide-Up / Slide-Down Animation) */}
+      {/* 1. TOP INFORMATION BAR */}
       <motion.header 
         initial={false}
         animate={{ height: isHeaderCollapsed ? 0 : 'auto', padding: isHeaderCollapsed ? 0 : '10px 20px', gap: isHeaderCollapsed ? 0 : 'auto', opacity: isHeaderCollapsed ? 0 : 1 }}
@@ -120,26 +115,30 @@ export default function CalculatorRunner({ calculator, initialBalance }: { calcu
         </div>
       </motion.header>
 
-      {/* Floating Toggle Button to Slide Up/Down Navigation */}
+      {/* Floating Toggle Button (Fixed Position) */}
       <button 
         onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
-        className="absolute top-2 right-1/2 z-30 bg-[#1E1B4B] hover:bg-[#5648FC] text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1.5 transition-colors border border-gray-700"
+        className="absolute top-4 right-6 z-30 bg-[#1E1B4B] hover:bg-[#5648FC] text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1.5 transition-colors border border-gray-700"
         title="Slide up / expand navigation"
       >
         {isHeaderCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
         {isHeaderCollapsed ? "Expand Nav" : "Slide Up Nav"}
       </button>
 
-      {/* 2. SECURE IFRAME EMBED WITH SKELETON LOADER */}
+      {/* 2. SECURE IFRAME EMBED */}
       <main className="flex-1 w-full bg-[#F7F8FA] relative overflow-hidden flex flex-col">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#5648FC] via-[#86EFAC] to-[#5648FC] opacity-50 z-10"></div>
-        <div className="absolute top-2 right-50 bg-white border border-gray-200 shadow-sm px-3 py-1 rounded-full text-[10px] font-bold text-gray-500 flex items-center gap-1.5 z-10">
-          <ShieldCheck size={12} className="text-emerald-500" /> Secure Token Tunnel Active {sessionId && `(Session: ${sessionId})`}
+        
+        {/* Secure Token Badge (Fixed Position in Center) */}
+        <div className="absolute top-2 right-1/10 -translate-x-1/2 bg-white border border-gray-200 shadow-sm px-4 py-1.5 rounded-full text-[10px] font-bold text-gray-500 flex items-center gap-1.5 z-10">
+          <ShieldCheck size={14} className="text-emerald-500" /> 
+          Secure Token Tunnel Active {sessionId && `(Session: ${sessionId})`}
         </div>
 
         {isRunning && sessionId && userConsented ? (
           <div className="relative w-full h-full flex-1">
-            {/* SKELETON LOADER ANIMATION (Shown until iframe finishes loading) */}
+            
+            {/* SKELETON LOADER ANIMATION */}
             {isIframeLoading && (
               <div className="absolute inset-0 z-10 bg-white flex flex-col items-center justify-center p-6">
                 <div className="w-full max-w-4xl space-y-4 animate-pulse">
@@ -154,16 +153,17 @@ export default function CalculatorRunner({ calculator, initialBalance }: { calcu
                   </div>
                   <div className="h-64 bg-gray-100 rounded-xl mt-6 flex flex-col items-center justify-center gap-3">
                     <Loader2 size={36} className="text-[#5648FC] animate-spin" />
-                    <p className="text-sm font-semibold text-gray-400">Loading Cloud Calculation Module...</p>
+                    <p className="text-sm font-semibold text-gray-400">Establishing Secure Connection to Module...</p>
                   </div>
                 </div>
               </div>
             )}
 
             <iframe 
-              src={calculator.api_url} 
+              src={`/api/proxy/${calculator.id}`} 
               title={calculator.name}
               onLoad={() => setIsIframeLoading(false)}
+              onError={() => setIsIframeLoading(false)} // Fail hone par loader hata dega
               className="w-full h-full border-none"
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals allow-popups-to-escape-sandbox"
               allow="clipboard-read; clipboard-write; display-capture; fullscreen"
@@ -211,7 +211,10 @@ export default function CalculatorRunner({ calculator, initialBalance }: { calcu
 
                 <div className="flex flex-col gap-3">
                   <button 
-                    onClick={() => setUserConsented(true)}
+                    onClick={() => {
+                      setSessionId(Math.random().toString(36).substring(2, 8).toUpperCase())
+                      setUserConsented(true)
+                    }}
                     className="w-full bg-[#1E1B4B] hover:bg-[#5648FC] text-white px-4 py-3.5 rounded-xl font-bold text-sm transition-colors shadow-lg"
                   >
                     I Agree, Start Module & Deduct Tokens
@@ -284,7 +287,6 @@ export default function CalculatorRunner({ calculator, initialBalance }: { calcu
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   )
 }
