@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
 import net from 'net';
+import os from 'os';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -56,7 +57,7 @@ async function ensureDir() {
 async function checkPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = net.createServer();
-    server.once('error', (err: any) => {
+    server.once('error', (err: NodeJS.ErrnoException) => {
       if (err.code === 'EADDRINUSE') resolve(false);
       else resolve(false);
     });
@@ -69,6 +70,12 @@ async function checkPortAvailable(port: number): Promise<boolean> {
 }
 
 async function getPythonEnv(): Promise<{ python: string, pip: string }> {
+  // 1. If running on local Windows, always use 'python'
+  if (os.platform() === 'win32') {
+    return { python: 'python', pip: 'pip' };
+  }
+
+  // 2. If running on Linux (Hostinger VPS), try python3 first, then fallback to python
   try {
     await execAsync('python3 --version');
     return { python: 'python3', pip: 'pip3' };
@@ -77,7 +84,7 @@ async function getPythonEnv(): Promise<{ python: string, pip: string }> {
       await execAsync('python --version');
       return { python: 'python', pip: 'pip' };
     } catch (err) {
-      throw new Error('Neither python3 nor python is available on this VPS.');
+      throw new Error('Neither python3 nor python is available on this server.');
     }
   }
 }
