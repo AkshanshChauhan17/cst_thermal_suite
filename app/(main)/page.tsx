@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <>
     <HeroSection />
-    <LogoTicker />
+    {/* <LogoTicker /> */}
     <StatsBanner />
     <FeaturesSection />
     <AdminControlSection />

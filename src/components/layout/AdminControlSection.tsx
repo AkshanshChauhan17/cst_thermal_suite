@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Shield, Database, MoreHorizontal, User, Activity } from "lucide-react";
+import { Shield, Database } from "lucide-react";
 import Image from "next/image";
 
 export default function AdminControlSection() {
@@ -24,20 +24,20 @@ export default function AdminControlSection() {
     },
   };
 
-  const cardVariants: Variants = {
-    hidden: { opacity: 0, x: -30 },
+  const imageFadeInVariants: Variants = {
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      x: 0,
-      transition: { duration: 0.6, ease: "easeOut", delay: 0.4 }
+      transition: { duration: 0.8, ease: "easeOut" }
     },
   };
 
   return (
-    <section className="w-full bg-white py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="w-full border-[#e0dfdf] border-1 bg-white py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
+          {/* Left Column: Text & Features */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -90,7 +90,14 @@ export default function AdminControlSection() {
             </div>
           </motion.div>
 
-          <div className="relative w-full h-[500px] md:h-[600px] mt-10 lg:mt-0">
+          {/* Right Column: Single Image with Fade-in Scroll Animation */}
+          <motion.div
+            variants={imageFadeInVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            className="relative w-full h-[500px] md:h-[600px] mt-10 lg:mt-0"
+          >
             <div className="absolute inset-0 bg-gray-200 border border-gray-300 flex items-center justify-center shadow-inner z-0">
               <span className="text-gray-400 font-semibold text-xl tracking-widest uppercase">
                 <Image
@@ -106,45 +113,7 @@ export default function AdminControlSection() {
                 />
               </span>
             </div>
-
-            <motion.div
-              variants={cardVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="absolute top-12 -left-4 md:-left-12 w-[320px] bg-white border border-gray-200 shadow-2xl p-4 flex items-center justify-between z-10"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-[#1E1B4B] flex items-center justify-center text-white">
-                  <User size={20} />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[#1E1B4B] font-bold text-sm">Client ID: 8942</span>
-                  <span className="text-gray-500 text-xs">VIP Enterprise Account</span>
-                </div>
-              </div>
-              <MoreHorizontal size={20} className="text-gray-400" />
-            </motion.div>
-
-            <motion.div
-              variants={cardVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="absolute top-36 -left-8 md:-left-20 w-[320px] bg-white border border-gray-200 shadow-2xl p-4 flex items-center justify-between z-20"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-[#5648FC] flex items-center justify-center text-white">
-                  <Activity size={20} />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[#1E1B4B] font-bold text-sm">System Override</span>
-                  <span className="text-green-600 font-medium text-xs">+10,000 Tokens Granted</span>
-                </div>
-              </div>
-              <MoreHorizontal size={20} className="text-gray-400" />
-            </motion.div>
-          </div>
+          </motion.div>
 
         </div>
       </div>

@@ -24,7 +24,7 @@ export default function CTASection() {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight leading-tight"
         >
-          Ready to optimize your thermal operations?
+          Ready to scale?
         </motion.h2>
         
         <motion.p 
@@ -35,7 +35,7 @@ export default function CTASection() {
           transition={{ delay: 0.1 }}
           className="text-white/80 text-lg md:text-xl mb-12 max-w-2xl leading-relaxed"
         >
-          Join 2,500+ Indian engineering teams leveraging our token-based ecosystem for frictionless computational accuracy and seamless component management.
+          Leverage our token-based ecosystem for frictionless computational accuracy and seamless component management across your entire engineering workflow.
         </motion.p>
         
         <motion.div 
@@ -49,7 +49,7 @@ export default function CTASection() {
           <Link href="/get-started" className="w-full sm:w-auto bg-[#86EFAC] text-[#1E1B4B] px-10 py-4 font-bold text-base hover:bg-white transition-colors">
             Get Started Now
           </Link>
-          <Link href="/secure/request-demo" className="w-full sm:w-auto bg-transparent border border-white/30 text-white px-10 py-4 font-bold text-base hover:bg-white/10 transition-colors">
+          <Link href="/get-started" className="w-full sm:w-auto bg-transparent border border-white/30 text-white px-10 py-4 font-bold text-base hover:bg-white/10 transition-colors">
             Request Free Demo
           </Link>
         </motion.div>

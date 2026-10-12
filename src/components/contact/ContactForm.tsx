@@ -1,4 +1,3 @@
-// app/contact/ContactForm.tsx
 "use client";
 
 import { motion } from "framer-motion";
@@ -88,6 +87,30 @@ export default function ContactForm() {
                 </div>
               </div>
 
+              {/* NEW: Phone and Address fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-[#1E1B4B] uppercase tracking-wider">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    name="phone"
+                    required 
+                    placeholder="+91 98765 43210" 
+                    className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] transition-colors"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-[#1E1B4B] uppercase tracking-wider">Company Address</label>
+                  <input 
+                    type="text" 
+                    name="address"
+                    required 
+                    placeholder="City, State" 
+                    className="w-full border border-gray-300 px-4 py-3 text-sm bg-[#F7F8FA] focus:bg-white focus:outline-none focus:border-[#5648FC] transition-colors"
+                  />
+                </div>
+              </div>
+
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-[#1E1B4B] uppercase tracking-wider">Subject / Department</label>
                 <select 
@@ -115,7 +138,7 @@ export default function ContactForm() {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="mt-2 w-full bg-[#5648FC] text-white px-8 py-4 font-bold text-base hover:bg-[#4336d6] transition-colors flex items-center justify-center gap-2 group"
+                className="mt-2 w-full bg-[#5648FC] text-white px-8 py-4 font-bold text-base hover:bg-[#4336d6] transition-colors flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {loading ? <Loader2 size={18} className="animate-spin" /> : "Send Message"}
                 {!loading && <Send size={18} className="group-hover:translate-x-1 transition-transform" />}

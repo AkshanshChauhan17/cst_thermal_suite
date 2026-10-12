@@ -14,10 +14,10 @@ export default function GetStartedSection() {
 
   return (
     <section className="w-full min-h-screen flex flex-col lg:flex-row bg-white">
-      
+
       {/* Left Side - Value Proposition (Server Rendered) */}
       <div className="w-full lg:w-5/12 bg-[#1E1B4B] p-8 md:p-16 lg:p-20 flex flex-col justify-between relative overflow-hidden">
-        
+
         {/* Abstract Background Element */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
           <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] bg-[#5648FC] rounded-full blur-[120px] opacity-20"></div>
@@ -40,8 +40,7 @@ export default function GetStartedSection() {
               Start optimizing your thermal operations.
             </h1>
             <p className="text-gray-400 text-lg mb-12 max-w-md leading-relaxed">
-              Join 2,500+ engineering teams across India building the future of
-              industrial HVAC and refrigeration.
+              Simplify your HVAC and refrigeration workflows with intelligent tools built for modern industrial engineering.
             </p>
 
             <ul className="flex flex-col gap-5">
@@ -70,9 +69,9 @@ export default function GetStartedSection() {
               VS
             </div>
             <div>
-              <p className="text-white text-sm font-bold">Vikram Sharma</p>
+              <p className="text-white text-sm font-bold">Dr. Jagjit Singh</p>
               <p className="text-gray-500 text-xs">
-                Lead Engineer, Tata Heavy Eng
+                CEO
               </p>
             </div>
           </div>
@@ -81,7 +80,7 @@ export default function GetStartedSection() {
 
       {/* Right Side - Interactive Registration Form Component */}
       <RegisterForm />
-      
+
     </section>
   )
 }

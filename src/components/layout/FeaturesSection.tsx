@@ -58,14 +58,14 @@ export default function FeaturesSection() {
     },
     {
       icon: <Shield size={24} className="text-[#5648FC]" />,
-      title: "Secure Architecture",
-      description: "Enterprise-level security for your proprietary hardware configurations and performance data.",
-      link: "/security",
+      title: "AHRI Standards",
+      description: "Ensure strict performance compliance across chilled water, steam coils, and complex HVAC configurations.",
+      link: "/standards",
       details: [
-        "End-to-end encryption",
-        "Role-based access control",
-        "Automated compliance logs",
-        "Proprietary data isolation"
+        "Chilled & hot water coils",
+        "Standard & non-freeze steam coils",
+        "Evaporator & condenser sizing",
+        "AHRI-410 certified algorithms"
       ]
     },
     {

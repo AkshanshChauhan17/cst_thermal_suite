@@ -14,18 +14,17 @@ const RegisterSchema = z.object({
 export async function registerUser(formData: {
   name: string
   email: string
+  company: string
+  country: string
+  state: string
+  gst_number: string
+  pan_number: string
   password: string
 }) {
-  const validated = RegisterSchema.safeParse(formData)
 
-  if (!validated.success) {
-    return { success: false, error: validated.error.message }
-  }
-
-  const { name, email, password } = validated.data
+  const { name, email, company, country, state, gst_number, pan_number, password } = formData
 
   try {
-    // 1. Check if user exists using parameterized query
     const [existing] = await db.query(
       'SELECT id FROM users WHERE email = ?',
       [email]
@@ -35,15 +34,16 @@ export async function registerUser(formData: {
       return { success: false, error: 'Email is already registered' }
     }
 
-    // 2. Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
     const userId = crypto.randomUUID()
     const ledgerId = crypto.randomUUID()
 
-    // 3. Insert User
+    // 3. Insert User with new fields
     await db.query(
-      'INSERT INTO users (id, name, email, password, token_balance) VALUES (?, ?, ?, ?, ?)',
-      [userId, name, email, hashedPassword, 100]
+      `INSERT INTO users 
+      (id, name, email, password, company, country, state, gst_number, pan_number, token_balance) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, name, email, hashedPassword, company, country, state, gst_number, pan_number, 100]
     )
 
     // 4. Create Initial Token Grant in Ledger

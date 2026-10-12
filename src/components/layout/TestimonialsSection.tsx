@@ -84,8 +84,8 @@ export default function TestimonialsSection() {
                 <Quote size={24} fill="currentColor" />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-[#1E1B4B] text-lg">Ananya Sharma</span>
-                <span className="text-gray-600 text-sm">Senior Engineering Manager</span>
+                <span className="font-bold text-[#1E1B4B] text-lg">Dr. Jagjit Singh</span>
+                <span className="text-gray-600 text-sm">CEO</span>
               </div>
             </div>
           </motion.div>

@@ -22,21 +22,24 @@ async function checkAdminAuth() {
 // Public form submit action
 export async function submitContact(formData: FormData) {
   try {
-    const id = crypto.randomUUID()
-    const full_name = formData.get('full_name')
-    const email = formData.get('email')
-    const department = formData.get('department')
-    const message = formData.get('message')
+    const id = crypto.randomUUID();
+    const full_name = formData.get('full_name');
+    const email = formData.get('email');
+    const phone = formData.get('phone'); // Capture phone
+    const address = formData.get('address'); // Capture address
+    const department = formData.get('department');
+    const message = formData.get('message');
 
     await db.query(
-      'INSERT INTO contacts (id, full_name, email, department, message) VALUES (?, ?, ?, ?, ?)',
-      [id, full_name, email, department, message]
-    )
+      'INSERT INTO contacts (id, full_name, email, phone, address, department, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [id, full_name, email, phone, address, department, message]
+    );
 
-    revalidatePath('/admin/contacts')
-    return { success: true, message: 'Message received successfully!' }
+    revalidatePath('/admin/contacts');
+    return { success: true, message: 'Message received successfully!' };
   } catch (error: unknown) {
-    return { success: false, error: 'Failed to send message.' }
+    console.error(error);
+    return { success: false, error: 'Failed to send message.' };
   }
 }
 

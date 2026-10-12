@@ -1,9 +1,9 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Star } from "lucide-react";
+import { Zap, Activity } from "lucide-react";
 
-export default function StatsBanner() {
+export default function CapabilitiesBanner() {
   const containerVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
@@ -39,43 +39,43 @@ export default function StatsBanner() {
           
           <motion.div variants={itemVariants} className="max-w-xl">
             <h2 className="text-3xl md:text-[32px] font-bold text-[#1E1B4B] leading-tight mb-4">
-              More than 2,500 engineering teams use Thermal Suite
+              Advanced thermal analysis built for modern engineering
             </h2>
             <p className="text-[#6B7280] text-sm md:text-base font-medium">
-              Optimize thermal performance, execute complex calculations, and scale your industrial operations faster.
+              Accelerate your design process with instant calculations, intuitive workflows, and enterprise-grade reliability right out of the box.
             </p>
           </motion.div>
 
           <motion.div variants={itemVariants} className="flex items-center gap-12 md:gap-20">
+            {/* Metric 1: Speed */}
             <div className="flex flex-col items-start">
               <span className="text-4xl md:text-5xl font-bold text-[#1E1B4B] tracking-tight mb-3">
-                4.9
+                &lt; 50ms
               </span>
-              <div className="flex items-center gap-1.5 mb-2">
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
+              <div className="flex items-center gap-2 mb-2">
+                <Zap size={18} className="text-[#FBBF24]" />
+                <span className="text-sm font-bold text-[#4B5563]">
+                  Processing Speed
+                </span>
               </div>
               <span className="text-[13px] text-[#9CA3AF] font-medium">
-                Capterra
+                Instant calculations
               </span>
             </div>
 
+            {/* Metric 2: Reliability */}
             <div className="flex flex-col items-start">
               <span className="text-4xl md:text-5xl font-bold text-[#1E1B4B] tracking-tight mb-3">
-                4.8
+                99.9%
               </span>
-              <div className="flex items-center gap-1.5 mb-2">
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
-                <Star size={16} fill="#FBBF24" color="#FBBF24" />
+              <div className="flex items-center gap-2 mb-2">
+                <Activity size={18} className="text-[#FBBF24]" />
+                <span className="text-sm font-bold text-[#4B5563]">
+                  Reliability
+                </span>
               </div>
               <span className="text-[13px] text-[#9CA3AF] font-medium">
-                Trustpilot
+                Cloud-native infrastructure
               </span>
             </div>
           </motion.div>

@@ -21,7 +21,7 @@ export default function ContactSection() {
           </div>
           
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 tracking-tight leading-tight">
-            We are here for your engineering teams.
+            Contact Our Support Team
           </h1>
           
           <p className="text-gray-400 text-lg mb-12 max-w-md leading-relaxed">
