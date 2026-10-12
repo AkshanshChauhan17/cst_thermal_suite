@@ -11,6 +11,19 @@ export const revalidate = 0;
 const execAsync = promisify(exec);
 const SCRIPTS_DIR = path.join(process.cwd(), 'python_modules');
 
+// HELPER: Safely run PM2 avoiding the Linux `npx` bash wrapper bug
+async function runPM2(command: string) {
+  const localPm2Path = path.join(process.cwd(), 'node_modules', 'pm2', 'bin', 'pm2');
+  try {
+    // 1st priority: Use exact Node binary path (Fixes the /usr/bin/bash bug on Hostinger)
+    await fs.access(localPm2Path);
+    return await execAsync(`node "${localPm2Path}" ${command}`);
+  } catch {
+    // 2nd priority: Fallback if local pm2 isn't found
+    return await execAsync(`npx pm2 ${command}`);
+  }
+}
+
 interface PM2Process {
   name: string;
   pm_id: number;
@@ -35,44 +48,36 @@ interface PythonProcess {
   port: string;
 }
 
-// Ensure the directory exists
 async function ensureDir() {
   try { await fs.access(SCRIPTS_DIR); } 
   catch { await fs.mkdir(SCRIPTS_DIR, { recursive: true }); }
 }
 
-// HELPER: Check if a port is available
 async function checkPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = net.createServer();
-    server.once('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE') {
-        resolve(false); // Port is occupied
-      } else {
-        resolve(false); // Some other error, assume unavailable for safety
-      }
+    server.once('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') resolve(false);
+      else resolve(false);
     });
     server.once('listening', () => {
       server.close();
-      resolve(true); // Port is free
+      resolve(true); 
     });
     server.listen(port);
   });
 }
 
-// HELPER: Safely determine whether to use python/pip or python3/pip3
 async function getPythonEnv(): Promise<{ python: string, pip: string }> {
   try {
-    // Try python3 first
     await execAsync('python3 --version');
     return { python: 'python3', pip: 'pip3' };
   } catch (err3) {
     try {
-      // Fallback to python
       await execAsync('python --version');
       return { python: 'python', pip: 'pip' };
     } catch (err) {
-      throw new Error('Neither python3 nor python is installed or available in system PATH.');
+      throw new Error('Neither python3 nor python is available on this VPS.');
     }
   }
 }
@@ -83,15 +88,14 @@ export async function GET() {
     let pythonProcesses: PythonProcess[] = [];
     let fileDetails: { name: string; size: string; date: Date }[] = [];
 
-    // 1. PM2 CHECK
     try {
-      const { stdout } = await execAsync('npx pm2 jlist');
+      // Replaced npx with our safe runner
+      const { stdout } = await runPM2('jlist');
       const processes = JSON.parse(stdout) as PM2Process[];
       
       pythonProcesses = processes
         .filter((p: PM2Process) => p.name.startsWith('py-'))
         .map((p: PM2Process) => {
-          // Find port from PM2 arguments
           const args = p.pm2_env.args || [];
           const portIndex = args.indexOf('--port');
           const port = (portIndex !== -1 && args.length > portIndex + 1) ? args[portIndex + 1] : 'Unknown';
@@ -107,11 +111,8 @@ export async function GET() {
             port: port
           };
         });
-    } catch (pm2Error) {
-      // Ignore if PM2 is not running yet
-    }
+    } catch (pm2Error) { }
 
-    // 2. FILE MANAGER CHECK
     try {
       const dirFiles = await fs.readdir(SCRIPTS_DIR);
       fileDetails = await Promise.all(dirFiles.map(async (file) => {
@@ -123,9 +124,7 @@ export async function GET() {
           date: stat.mtime
         };
       }));
-    } catch (fileError) {
-      console.log("File Read Error:", fileError);
-    }
+    } catch (fileError) {}
 
     return NextResponse.json({ success: true, processes: pythonProcesses, files: fileDetails });
   } catch (error: unknown) {
@@ -159,10 +158,9 @@ export async function POST(req: NextRequest) {
       const lib = formData.get('library') as string;
       if (!/^[a-zA-Z0-9\-_=.]+$/.test(lib)) throw new Error("Invalid library name");
       
-      const env = await getPythonEnv(); // Dynamically gets pip or pip3
+      const env = await getPythonEnv();
       const { stdout, stderr } = await execAsync(`${env.pip} install ${lib}`);
-      
-      return NextResponse.json({ success: true, message: `Installed ${lib} using ${env.pip}`, log: stdout || stderr });
+      return NextResponse.json({ success: true, message: `Installed ${lib}`, log: stdout || stderr });
     }
 
     if (action === 'start') {
@@ -174,20 +172,17 @@ export async function POST(req: NextRequest) {
       const port = parseInt(portString, 10);
       if (isNaN(port)) throw new Error("Invalid port number format.");
 
-      // Check if port is already in use
       const isAvailable = await checkPortAvailable(port);
       if (!isAvailable) {
-        throw new Error(`Port ${port} is currently in use. Please select a different port or stop the running process.`);
+        throw new Error(`Port ${port} is currently in use. Please select a different port.`);
       }
 
-      // Dynamically get python or python3
       const env = await getPythonEnv();
       const filePath = path.join(SCRIPTS_DIR, filename);
       
-      // Start PM2 with the safely resolved Python interpreter
-      const cmd = `npx pm2 start "${filePath}" --name py-${name} --interpreter ${env.python} -- --port ${port}`;
-      await execAsync(cmd);
-      await execAsync('npx pm2 save'); 
+      // Replaced npx with safe runner
+      await runPM2(`start "${filePath}" --name py-${name} --interpreter ${env.python} -- --port ${port}`);
+      await runPM2('save'); 
       
       return NextResponse.json({ success: true, message: `Started ${filename} on port ${port} using ${env.python}` });
     }
@@ -195,8 +190,11 @@ export async function POST(req: NextRequest) {
     if (action === 'stop' || action === 'delete_process') {
       const name = formData.get('name') as string;
       const pm2Action = action === 'delete_process' ? 'delete' : 'stop';
-      await execAsync(`npx pm2 ${pm2Action} py-${name}`);
-      if (action === 'delete_process') await execAsync('npx pm2 save');
+      
+      // Replaced npx with safe runner
+      await runPM2(`${pm2Action} py-${name}`);
+      if (action === 'delete_process') await runPM2('save');
+      
       return NextResponse.json({ success: true, message: `Process py-${name} ${pm2Action}d` });
     }
 
