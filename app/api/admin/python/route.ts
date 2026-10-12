@@ -1,9 +1,9 @@
-// app/api/admin/python/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
+import net from 'net';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -35,9 +35,46 @@ interface PythonProcess {
   port: string;
 }
 
+// Ensure the directory exists
 async function ensureDir() {
   try { await fs.access(SCRIPTS_DIR); } 
   catch { await fs.mkdir(SCRIPTS_DIR, { recursive: true }); }
+}
+
+// HELPER: Check if a port is available
+async function checkPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        resolve(false); // Port is occupied
+      } else {
+        resolve(false); // Some other error, assume unavailable for safety
+      }
+    });
+    server.once('listening', () => {
+      server.close();
+      resolve(true); // Port is free
+    });
+    server.listen(port);
+  });
+}
+
+// HELPER: Safely determine whether to use python/pip or python3/pip3
+async function getPythonEnv(): Promise<{ python: string, pip: string }> {
+  try {
+    // Try python3 first
+    await execAsync('python3 --version');
+    return { python: 'python3', pip: 'pip3' };
+  } catch (err3) {
+    try {
+      // Fallback to python
+      await execAsync('python --version');
+      return { python: 'python', pip: 'pip' };
+    } catch (err) {
+      throw new Error('Neither python3 nor python is installed or available in system PATH.');
+    }
+  }
 }
 
 export async function GET() {
@@ -70,7 +107,9 @@ export async function GET() {
             port: port
           };
         });
-    } catch (pm2Error) {}
+    } catch (pm2Error) {
+      // Ignore if PM2 is not running yet
+    }
 
     // 2. FILE MANAGER CHECK
     try {
@@ -119,19 +158,38 @@ export async function POST(req: NextRequest) {
     if (action === 'install') {
       const lib = formData.get('library') as string;
       if (!/^[a-zA-Z0-9\-_=.]+$/.test(lib)) throw new Error("Invalid library name");
-      const { stdout, stderr } = await execAsync(`pip3 install ${lib}`);
-      return NextResponse.json({ success: true, message: `Installed ${lib}`, log: stdout || stderr });
+      
+      const env = await getPythonEnv(); // Dynamically gets pip or pip3
+      const { stdout, stderr } = await execAsync(`${env.pip} install ${lib}`);
+      
+      return NextResponse.json({ success: true, message: `Installed ${lib} using ${env.pip}`, log: stdout || stderr });
     }
 
     if (action === 'start') {
       const filename = formData.get('filename') as string;
-      const port = formData.get('port') as string;
+      const portString = formData.get('port') as string;
       const name = formData.get('name') as string; 
+      
+      if (!portString) throw new Error("Port is required.");
+      const port = parseInt(portString, 10);
+      if (isNaN(port)) throw new Error("Invalid port number format.");
+
+      // Check if port is already in use
+      const isAvailable = await checkPortAvailable(port);
+      if (!isAvailable) {
+        throw new Error(`Port ${port} is currently in use. Please select a different port or stop the running process.`);
+      }
+
+      // Dynamically get python or python3
+      const env = await getPythonEnv();
       const filePath = path.join(SCRIPTS_DIR, filename);
-      const cmd = `npx pm2 start "${filePath}" --name py-${name} --interpreter python -- --port ${port}`;
+      
+      // Start PM2 with the safely resolved Python interpreter
+      const cmd = `npx pm2 start "${filePath}" --name py-${name} --interpreter ${env.python} -- --port ${port}`;
       await execAsync(cmd);
       await execAsync('npx pm2 save'); 
-      return NextResponse.json({ success: true, message: `Started ${filename} on port ${port}` });
+      
+      return NextResponse.json({ success: true, message: `Started ${filename} on port ${port} using ${env.python}` });
     }
 
     if (action === 'stop' || action === 'delete_process') {
