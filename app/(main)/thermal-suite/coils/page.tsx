@@ -1,4 +1,5 @@
 import CalculatorSuiteSection from "@/src/components/coil/CalculatorSuiteSection";
+import CoilScrolling from "@/src/components/coil/CoilScrolling";
 import CoilSelectionCategories from "@/src/components/coil/CoilSelectionCategories";
 import CoilSelectionHero from "@/src/components/coil/CoilSelectionHero";
 import CTASection from "@/src/components/layout/CTASection";
@@ -13,8 +14,9 @@ export default function CoilSelectionPage() {
     <main className="min-h-screen bg-[#F7F8FA] flex flex-col">      
       {/* Coil Selection Specific Sections */}
       <CoilSelectionHero />
-      <CoilSelectionCategories />
-      <CalculatorSuiteSection />
+      <CoilScrolling />
+      {/* <CoilSelectionCategories />
+      <CalculatorSuiteSection /> */}
       
       {/* Reusing Global Components */}
       <CTASection />

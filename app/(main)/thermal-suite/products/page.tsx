@@ -1,6 +1,7 @@
 import CTASection from "@/src/components/layout/CTASection";
 import EngineeringTools from "@/src/components/products/EngineeringTools";
 import ProductCategories from "@/src/components/products/ProductCategories";
+import ProductScrolling from "@/src/components/products/ProductScrolling";
 import ProductsHero from "@/src/components/products/ProductsHero";
 
 export const metadata = {
@@ -13,8 +14,9 @@ export default function ProductsPage() {
     <main className="min-h-screen bg-[#F7F8FA] flex flex-col">
       {/* Product Specific Sections */}
       <ProductsHero />
-      <ProductCategories />
-      <EngineeringTools />
+      <ProductScrolling />
+      {/* <ProductCategories />
+      <EngineeringTools /> */}
       
       {/* Reusing Global Components for the footer area */}
       <CTASection />
