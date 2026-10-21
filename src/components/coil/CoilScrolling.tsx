@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight, X, Loader2 } from "lucide-react";
 
+// 8 Coils ka data
 const coilFeatures = [
   {
     id: 1,
@@ -46,12 +48,38 @@ const coilFeatures = [
     description: "Maximize gas turbine power output with our specialized inlet cooling systems, designed for extreme performance demands.",
     image: "/coil_6.png",
     tag: "Power Generation"
+  },
+  {
+    id: 7,
+    title: "Condenser Coils", 
+    description: "High-efficiency condenser coils specifically designed for optimal heat rejection in heavy-duty air conditioning and refrigeration systems.",
+    image: "/coil_7.png",
+    tag: "Heat Rejection"
+  },
+  {
+    id: 8,
+    title: "Evaporator Coils", 
+    description: "Premium evaporator coils tailored for maximum heat absorption, ensuring superior cooling performance in complex industrial setups.",
+    image: "/coil_8.png",
+    tag: "Heat Absorption"
   }
 ];
 
 export default function CoilScrolling() {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("Demo");
+
+  // Auto-redirect logic with timer cleanup
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isModalOpen) {
+      timer = setTimeout(() => {
+        router.push("/get-started");
+      }, 1500); // 1.5 seconds delay
+    }
+    // Agar redirect hone se pehle user modal close kar de to timer cancel ho jayega
+    return () => clearTimeout(timer);
+  }, [isModalOpen, router]);
 
   return (
     <div className="w-full overflow-hidden flex flex-col">
@@ -78,13 +106,13 @@ export default function CoilScrolling() {
       <div className="w-full flex flex-col">
         {coilFeatures.map((feature, index) => {
           const isEven = index % 2 === 0;
-          // Background aur border se har section ko differentiate kiya hai
           const bgClass = isEven ? "bg-white" : "bg-[#F8FAFC] border-y border-gray-100";
 
           return (
             <section 
               key={feature.id} 
-              className={`w-full py-24 px-4 sm:px-6 lg:px-8 transition-colors ${bgClass}`}
+              id={`coil-${feature.id}`}
+              className={`w-full py-24 px-4 sm:px-6 lg:px-8 transition-colors ${bgClass} scroll-mt-20`}
             >
               <div className={`max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20 ${
                 isEven ? "" : "lg:flex-row-reverse"
@@ -108,12 +136,11 @@ export default function CoilScrolling() {
                     {feature.description}
                   </p>
                   
-                  {/* Button se ab Popup Modal khulega */}
                   <button 
                     onClick={() => setIsModalOpen(true)}
                     className="group flex items-center gap-2 text-white bg-[#5648FC] px-6 py-3 rounded-lg font-bold hover:bg-[#4336d6] transition-all shadow-lg shadow-[#5648FC]/20"
                   >
-                    Request Demo / Specs
+                    View & Get Started
                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </button>
                 </motion.div>
@@ -145,7 +172,7 @@ export default function CoilScrolling() {
         })}
       </div>
 
-      {/* POPUP MODAL */}
+      {/* NEW CLEAN ANIMATED POPUP MODAL */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div 
@@ -155,105 +182,33 @@ export default function CoilScrolling() {
             className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4 backdrop-blur-sm"
           >
             <motion.div 
-              initial={{ y: 50, opacity: 0, scale: 0.95 }}
+              initial={{ y: 30, opacity: 0, scale: 0.95 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 20, opacity: 0, scale: 0.95 }}
-              className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+              className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden relative"
             >
-              {/* Modal Header & Tabs */}
-              <div className="flex border-b border-gray-200 relative bg-gray-50">
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="absolute right-4 top-4 text-gray-400 hover:text-gray-700 transition-colors z-10 bg-white p-1 rounded-full shadow-sm border border-gray-200"
-                >
-                  <X size={20} />
-                </button>
+              {/* Close Button */}
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="absolute right-4 top-4 text-gray-400 hover:text-gray-700 transition-colors z-10 bg-white p-1.5 rounded-full shadow-sm border border-gray-200"
+              >
+                <X size={20} />
+              </button>
 
-                {["Demo", "Product", "Token"].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`flex-1 py-4 text-sm md:text-base font-bold transition-all ${
-                      activeTab === tab 
-                        ? "text-[#5648FC] border-b-2 border-[#5648FC] bg-white" 
-                        : "text-gray-500 hover:text-gray-800 hover:bg-gray-100/50"
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
+              {/* Loader Content with animate-spin */}
+              <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[280px]">
+                <Loader2 size={56} className="text-[#5648FC] mb-6 animate-spin" />
+                <div className="text-center">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Connecting to Register...</h3>
+                  <p className="text-gray-500 font-medium text-sm md:text-base">Please wait, setting up your environment.</p>
+                </div>
               </div>
-
-              {/* Modal Content Area */}
-              <div className="p-6 md:p-8 min-h-[400px]">
-                
-                {/* DEMO TAB W/ FORM */}
-                {activeTab === "Demo" && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex flex-col gap-6"
-                  >
-                    <div>
-                      <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Request Software Demo</h2>
-                      <p className="text-gray-600">Fill out the details below and our technical team will set up a live demo session for your requirements.</p>
-                    </div>
-
-                    <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-sm font-semibold text-gray-700">Full Name</label>
-                          <input type="text" placeholder="John Doe" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#5648FC]/50 focus:border-[#5648FC] outline-none transition-all bg-gray-50 focus:bg-white" />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-sm font-semibold text-gray-700">Work Email</label>
-                          <input type="email" placeholder="john@company.com" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#5648FC]/50 focus:border-[#5648FC] outline-none transition-all bg-gray-50 focus:bg-white" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-sm font-semibold text-gray-700">Company / Organization</label>
-                        <input type="text" placeholder="Engineering Solutions Pvt Ltd" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#5648FC]/50 focus:border-[#5648FC] outline-none transition-all bg-gray-50 focus:bg-white" />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-sm font-semibold text-gray-700">Application Type</label>
-                        <select className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#5648FC]/50 focus:border-[#5648FC] outline-none transition-all bg-gray-50 focus:bg-white">
-                          <option>HVAC Solutions</option>
-                          <option>Industrial Cooling</option>
-                          <option>Power Generation</option>
-                          <option>Other</option>
-                        </select>
-                      </div>
-
-                      <button type="submit" className="w-full bg-[#5648FC] text-white font-bold py-3 rounded-lg hover:bg-[#4336d6] transition-colors mt-4 shadow-lg shadow-[#5648FC]/20">
-                        Submit Demo Request
-                      </button>
-                    </form>
-                  </motion.div>
-                )}
-                
-                {/* PRODUCT TAB */}
-                {activeTab === "Product" && (
-                  <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                    <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Product Specifications</h2>
-                    <p className="text-gray-600">Product details and selection options will be displayed here.</p>
-                  </motion.div>
-                )}
-                
-                {/* TOKEN TAB */}
-                {activeTab === "Token" && (
-                  <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                    <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Buy / Manage Tokens</h2>
-                    <p className="text-gray-600">API token generation and usage statistics will be available here.</p>
-                  </motion.div>
-                )}
-
-              </div>
+              
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }

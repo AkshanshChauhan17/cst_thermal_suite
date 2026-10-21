@@ -13,7 +13,7 @@ export default function ProductsPage() {
   return (
     <main className="min-h-screen bg-[#F7F8FA] flex flex-col">
       {/* Product Specific Sections */}
-      <ProductsHero />
+      {/* <ProductsHero /> */}
       <ProductScrolling />
       {/* <ProductCategories />
       <EngineeringTools /> */}

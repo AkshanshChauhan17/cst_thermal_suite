@@ -13,7 +13,7 @@ export default function CoilSelectionPage() {
   return (
     <main className="min-h-screen bg-[#F7F8FA] flex flex-col">      
       {/* Coil Selection Specific Sections */}
-      <CoilSelectionHero />
+      {/* <CoilSelectionHero /> */}
       <CoilScrolling />
       {/* <CoilSelectionCategories />
       <CalculatorSuiteSection /> */}
